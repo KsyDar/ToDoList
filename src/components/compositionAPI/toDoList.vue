@@ -1,75 +1,74 @@
 <template>
-  <ul class="toDoList">
-    <li
-      class="toDoList-item"
-      :class="{ isDone: toDo.status }"
-      v-for="toDo in toDos"
-      :key="toDo.id"
-    >
-      <toDoItem
-        :toDo="toDo"
-        @deleteToDo="deleteToDo"
-        @editToDo="editToDo"
-        @changeStatus="changeStatus"
-      />
-    </li>
-  </ul>
+  <template v-if="isLoading === false">
+    <ul class="toDoList">
+      <li
+        class="toDoList-item"
+        :class="{ isDone: toDo.status }"
+        v-for="toDo in toDos"
+        :key="toDo.id"
+      >
+        <toDoItem
+          :toDo="toDo"
+          @deleteToDo="deleteToDo"
+          @editToDo="editToDo"
+          @changeStatus="changeStatus"
+        />
+      </li>
+    </ul>
+    <button class="toDoList__addButton" @click="addToDo()">Добавить</button>
+  </template>
+
+  <div v-else>Загрузка...</div>
   <changeToDoModal
     v-if="selectedTodo"
     :toDo="selectedTodo"
     @saveChanges="saveChanges"
     @cancelChange="cancelChange"
   />
-  <button class="toDoList__addButton" @click="addToDo()">Добавить</button>
 </template>
 
 <script>
 import toDoItem from "./toDoItem.vue";
 import changeToDoModal from "./changeToDoModal.vue";
-import { ref } from "vue";
+import { onBeforeMount, ref } from "vue";
+import axios from "axios";
 export default {
   name: "toDoList",
   components: { changeToDoModal, toDoItem },
   setup() {
-    const toDos = ref([
-      {
-        id: Symbol(),
-        work: "Приготовить ужин",
-        status: true,
-        description: "Сварить макароны, пожарить котлеты, сделать салат",
-      },
-      {
-        id: Symbol(),
-        work: "Помыть окна",
-        status: false,
-        description:
-          "Купить средство для мытья окон, тряпки для окон лежат в ванной на третьй полке слева",
-      },
-      {
-        id: Symbol(),
-        work: "Поцеловать Тёму",
-        status: false,
-        description: "В носик! Обязательно!!",
-      },
-    ]);
+    const toDos = ref([]);
+    const isLoading = ref(true);
+
+    onBeforeMount(async () => {
+      const res = await axios.get("http://localhost:3000/todos");
+      isLoading.value = false;
+      toDos.value = res.data;
+    });
 
     const selectedTodo = ref(null);
 
-    const deleteToDo = (toDo) => {
+    const deleteToDo = async (toDo) => {
       toDos.value.splice(toDos.value.indexOf(toDo), 1);
+      await axios.delete(`http://localhost:3000/todos/${toDo.id}`);
     };
     const editToDo = (todo) => {
       selectedTodo.value = todo;
     };
-    const saveChanges = (info) => {
+    const saveChanges = async (info) => {
       selectedTodo.value = null;
       if (info.isAdd) {
-        toDos.value.push({ ...info.toDo, id: Symbol(), status: false });
-      } else { 
+        const newToDo = { ...info.toDo, id: Symbol(), status: false };
+        toDos.value.push(newToDo);
+        await axios.post(`http://localhost:3000/todos`, newToDo);
+      } else {
         const editTodo = toDos.value.find((x) => x.id === info.toDo.id);
         if (editTodo) {
           editTodo.work = info.toDo.work;
           editTodo.description = info.toDo.description;
+          await axios.put(
+            `http://localhost:3000/todos/${editTodo.id}`,
+            editTodo
+          );
         }
       }
     };
@@ -83,11 +82,12 @@ export default {
       };
     };
 
-    const cancelChange = (toDo) => {
+    const cancelChange = () => {
       selectedTodo.value = null;
     };
-    const changeStatus = (toDo) => {
+    const changeStatus = async (toDo) => {
       toDo.status = !toDo.status;
+      await axios.put(`http://localhost:3000/todos/${toDo.id}`, toDo);
     };
 
     return {
@@ -99,6 +99,7 @@ export default {
       cancelChange,
       changeStatus,
       selectedTodo,
+      isLoading,
     };
   },
 };
