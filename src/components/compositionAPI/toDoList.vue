@@ -7,26 +7,19 @@
       :key="toDo.id"
     >
       <toDoItem
-        :work="toDo.work"
-        :status="toDo.status"
-        :description="toDo.description"
-        :isModalOpened="toDo.isModalOpened"
-        :descriptionButtonName="toDo.descriptionButtonName"
-        :isDescriptionOpen="toDo.isDescriptionOpen"
-        @deleteToDo="deleteToDo(toDo)"
-        @editToDo="editToDo(toDo)"
-        @changeStatus="changeStatus($event, toDo)"
-        @openDescription="openDescription(toDo)"
-      />
-      <changeToDoModal
-        v-if="toDo.isModalOpened"
-        :work="toDo.work"
-        :description="toDo.description"
-        @saveChanges="saveChanges($event, toDo)"
-        @cancelChange="cancelChange(toDo)"
+        :toDo="toDo"
+        @deleteToDo="deleteToDo"
+        @editToDo="editToDo"
+        @changeStatus="changeStatus"
       />
     </li>
   </ul>
+  <changeToDoModal
+    v-if="selectedTodo"
+    :toDo="selectedTodo"
+    @saveChanges="saveChanges"
+    @cancelChange="cancelChange"
+  />
   <button class="toDoList__addButton" @click="addToDo()">Добавить</button>
 </template>
 
@@ -40,66 +33,61 @@ export default {
   setup() {
     const toDos = ref([
       {
+        id: Symbol(),
         work: "Приготовить ужин",
         status: true,
-        isModalOpened: false,
         description: "Сварить макароны, пожарить котлеты, сделать салат",
-        isDescriptionOpen: false,
-        descriptionButtonName: "Развернуть",
       },
       {
+        id: Symbol(),
         work: "Помыть окна",
         status: false,
-        isModalOpened: false,
         description:
           "Купить средство для мытья окон, тряпки для окон лежат в ванной на третьй полке слева",
-        isDescriptionOpen: false,
-        descriptionButtonName: "Развернуть",
       },
       {
+        id: Symbol(),
         work: "Поцеловать Тёму",
         status: false,
-        isModalOpened: false,
         description: "В носик! Обязательно!!",
-        isDescriptionOpen: false,
-        descriptionButtonName: "Развернуть",
       },
     ]);
 
-    const deleteToDo = (toDo) => toDos.value.splice(toDos.value.indexOf(toDo), 1);
-    const editToDo = (toDo) => (toDo.isModalOpened = true);
-    const saveChanges = (newWork, toDo) => {
-      toDo.work = newWork[0];
-      toDo.description = newWork[1];
-      toDos.value = toDos.value.filter((toDo) => toDo.work != "");
-      toDo.isModalOpened = false;
+    const selectedTodo = ref(null);
+
+    const deleteToDo = (toDo) => {
+      toDos.value.splice(toDos.value.indexOf(toDo), 1);
+    };
+    const editToDo = (todo) => {
+      selectedTodo.value = todo;
+    };
+    const saveChanges = (info) => {
+      selectedTodo.value = null;
+      if (info.isAdd) {
+        toDos.value.push({ ...info.toDo, id: Symbol(), status: false });
+      } else { 
+        const editTodo = toDos.value.find((x) => x.id === info.toDo.id);
+        if (editTodo) {
+          editTodo.work = info.toDo.work;
+          editTodo.description = info.toDo.description;
+        }
+      }
     };
 
     const addToDo = () => {
-      let toDo = {
+      selectedTodo.value = {
+        id: null,
         work: "",
         status: false,
-        isModalOpened: true,
         description: "",
-        isDescriptionOpen: false,
-        descriptionButtonName: "Развернуть",
       };
-      toDos.value.push(toDo);
     };
 
     const cancelChange = (toDo) => {
-      toDos.value = toDos.value.filter((toDo) => toDo.work != "");
-      toDo.isModalOpened = false;
+      selectedTodo.value = null;
     };
-    const changeStatus = (newStatus, toDo) => (toDo.status = newStatus);
-
-    const openDescription = (toDo) => {
-      toDo.isDescriptionOpen = !toDo.isDescriptionOpen;
-      if (toDo.descriptionButtonName === "Развернуть") {
-        toDo.descriptionButtonName = "Свернуть";
-      } else {
-        toDo.descriptionButtonName = "Развернуть";
-      }
+    const changeStatus = (toDo) => {
+      toDo.status = !toDo.status;
     };
 
     return {
@@ -110,7 +98,7 @@ export default {
       addToDo,
       cancelChange,
       changeStatus,
-      openDescription,
+      selectedTodo,
     };
   },
 };

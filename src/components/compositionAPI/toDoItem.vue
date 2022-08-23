@@ -3,50 +3,57 @@
     <input
       type="checkbox"
       class="toDo-status"
-      v-model="status"
-      @change="changeStatus()"
+      :checked="toDo.status"
+      @change="changeStatus"
     />
-    {{ work }}
+    {{ toDo.work }}
     <p class="toDo-description" :class="{ descriptionOpen: isDescriptionOpen }">
-      {{ description }}
+      {{ toDo.description }}
     </p>
   </div>
   <div class="toDo__buttons">
     <button
       class="toDo__button toDo__button--description"
-      @click="openDescription()"
+      @click="openDescription"
     >
       {{ descriptionButtonName }}
     </button>
-    <button class="toDo__button toDo__button--edit" @click="editToDo()">
+    <button class="toDo__button toDo__button--edit" @click="editToDo">
       Изменить
     </button>
-    <button class="toDo__button" @click="deleteToDo()">Удалить</button>
+    <button class="toDo__button" @click="deleteToDo">Удалить</button>
   </div>
 </template>
 
 <script>
+import { ref } from "@vue/reactivity";
 export default {
   name: "toDoItem",
+  emits: ["deleteToDo", "editToDo", "changeStatus"],
   props: {
-    work: String,
-    status: Boolean,
-    isModalOpened: Boolean,
-    description: String,
-    descriptionButtonName: String,
-    isDescriptionOpen: Boolean,
+    toDo: Object,
   },
   setup(props, { emit }) {
-    const deleteToDo = () => emit("deleteToDo");
-    const editToDo = () => emit("editToDo");
-    const changeStatus = () => emit("changeStatus", props.status);
-    const openDescription = () => emit("openDescription");
+    const deleteToDo = () => emit("deleteToDo", props.toDo);
+    const editToDo = () => emit("editToDo", props.toDo);
+    const changeStatus = () => emit("changeStatus", props.toDo);
+
+    const isDescriptionOpen = ref(false);
+    const descriptionButtonName = ref("Развернуть");
+
+    const openDescription = () => {
+      isDescriptionOpen.value = !isDescriptionOpen.value;
+      descriptionButtonName.value =
+        isDescriptionOpen.value === true ? "Свернуть" : "Развернуть";
+    };
 
     return {
       deleteToDo,
       editToDo,
       changeStatus,
       openDescription,
+      isDescriptionOpen,
+      descriptionButtonName
     };
   },
 };

@@ -32,6 +32,7 @@
 <script>
 export default {
   name: "changeToDoModal",
+  emits: ["saveChanges", "cancelChange"],
   props: {
     work: String,
     description: String,

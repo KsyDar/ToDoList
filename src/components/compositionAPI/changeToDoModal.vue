@@ -17,11 +17,11 @@
       <div class="modal__buttons">
         <button
           class="modal__buttons-item modal__buttons-item--save"
-          @click="saveChanges()"
+          @click="saveChanges"
         >
           Сохранить
         </button>
-        <button class="modal__buttons-item" @click="cancelChange()">
+        <button class="modal__buttons-item" @click="cancelChange">
           Отмена
         </button>
       </div>
@@ -30,21 +30,34 @@
 </template>
 
 <script>
+import { ref } from '@vue/reactivity';
 export default {
   name: "changeToDoModal",
   props: {
-    work: String,
-    description: String,
+    toDo: Object,
   },
 
-  setup(props, {emit}) {
-    const saveChanges = () => emit("saveChanges", [props.work, props.description]);
-    const cancelChange = () => emit("cancelChange");
+  setup(props, { emit }) {
+    const work = ref(props.toDo.work)
+    const description = ref(props.toDo.description)
 
+    const saveChanges = () => {
+      emit("saveChanges", {
+        isAdd: props.toDo.id === null,
+        toDo: { id: props.toDo.id, work: work.value, description: description.value},
+      });
+    };
+
+    const cancelChange = () => {
+      emit("cancelChange");
+    };
+    
     return {
       saveChanges,
-      cancelChange
-    }
+      cancelChange,
+      work,
+      description
+    };
   },
 };
 </script>
