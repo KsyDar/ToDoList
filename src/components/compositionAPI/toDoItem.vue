@@ -1,34 +1,34 @@
 <template>
-  <div class="toDo-information">
+  <div class="to-do__information">
     <input
       type="checkbox"
-      class="toDo-status"
+      class="to-do-status"
       :checked="toDo.status"
       @change="changeStatus"
     />
     {{ toDo.work }}
-    <p class="toDo-description" :class="{ descriptionOpen: isDescriptionOpen }">
+    <p class="to-do__description" :class="{ 'to-do__description--open': isDescriptionOpen }">
       {{ toDo.description }}
     </p>
   </div>
-  <div class="toDo__buttons">
+  <div class="to-do__buttons">
     <button
-      class="toDo__button toDo__button--description"
+      class="to-do__button to-do__button--description"
       @click="openDescription"
     >
       {{ descriptionButtonName }}
     </button>
-    <button class="toDo__button toDo__button--edit" @click="editToDo">
+    <button class="to-do__button to-do__button--edit" @click="editToDo">
       Изменить
     </button>
-    <button class="toDo__button" @click="deleteToDo">Удалить</button>
+    <button class="to-do__button" @click="deleteToDo">Удалить</button>
   </div>
 </template>
 
 <script>
 import { ref } from "@vue/reactivity";
 export default {
-  name: "toDoItem",
+  name: "ToDoItem",
   emits: ["deleteToDo", "editToDo", "changeStatus"],
   props: {
     toDo: Object,
@@ -60,26 +60,26 @@ export default {
 </script>
 
 <style>
-.toDo-information {
+.to-do__information {
   cursor: pointer;
 }
 
-.toDo-description {
+.to-do__description {
   display: none;
   color: #000;
 }
 
-.descriptionOpen {
+.to-do__description--open {
   display: table-row;
 }
 
-.toDo__buttons {
+.to-do__buttons {
   margin-left: 10rem;
   font-size: 0.8rem;
   display: flex;
 }
 
-.toDo__button {
+.to-do__button {
   margin-left: 1rem;
   margin-bottom: 0.5rem;
   border-radius: 25px;
@@ -88,15 +88,15 @@ export default {
   color: #000000ad;
 }
 
-.toDo__button:hover {
+.to-do__button:hover {
   border: solid 1px #000;
 }
 
-.toDo__button--edit {
+.to-do__button--edit {
   background-color: #f3f700;
 }
 
-.toDo__button--description {
+.to-do__button--description {
   background-color: #d0ef99;
 }
 </style>

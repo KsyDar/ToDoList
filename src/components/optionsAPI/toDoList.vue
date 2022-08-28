@@ -1,130 +1,110 @@
 <template>
-  <ul class="toDoList">
-    <li
-      class="toDoList-item"
-      :class="{ isDone: toDo.status }"
-      v-for="toDo in toDos"
-      :key="toDo.id"
-    >
-      <toDoItem
-        :work="toDo.work"
-        :status="toDo.status"
-        :description="toDo.description"
-        :isModalOpened="toDo.isModalOpened"
-        :descriptionButtonName="toDo.descriptionButtonName"
-        :isDescriptionOpen="toDo.isDescriptionOpen"
-        @deleteToDo="deleteToDo(toDo)"
-        @editToDo="editToDo(toDo)"
-        @changeStatus="changeStatus($event, toDo)"
-        @openDescription="openDescription(toDo)"
-      />
-      <changeToDoModal
-        v-if="toDo.isModalOpened"
-        :work="toDo.work"
-        :description="toDo.description"
-        @saveChanges="saveChanges($event, toDo)"
-        @cancelChange="cancelChange(toDo)"
-      />
-    </li>
-  </ul>
-  <button class="toDoList__addButton" @click="addToDo()">Добавить</button>
+  <template v-if="isLoading === false">
+    <ul class="to-do-list">
+      <li
+        class="to-do-list-item"
+        :class="{ 'is-done': toDo.status }"
+        v-for="toDo in toDos"
+        :key="toDo.id"
+      >
+        <ToDoItem
+          :toDo="toDo"
+          @deleteToDo="deleteToDo"
+          @editToDo="editToDo"
+          @changeStatus="changeStatus"
+        />
+      </li>
+    </ul>
+    <button class="to-do-list__add-button" @click="addToDo()">Добавить</button>
+  </template>
+
+  <div v-else>Загрузка...</div>
+  <ChangeToDoModal
+    v-if="selectedTodo"
+    :toDo="selectedTodo"
+    @saveChanges="saveChanges"
+    @cancelChange="cancelChange"
+  />
 </template>
 
 <script>
-import toDoItem from "./toDoItem.vue";
-import changeToDoModal from "./changeToDoModal.vue";
+import ToDoItem from "./ToDoItem.vue";
+import ChangeToDoModal from "./ChangeToDoModal.vue";
+import axios from "axios";
 export default {
   name: "toDoList",
-  components: { changeToDoModal, toDoItem },
+  components: { ChangeToDoModal, ToDoItem },
   data() {
     return {
-      toDos: [
-        {
-          work: "Приготовить ужин",
-          status: true,
-          isModalOpened: false,
-          description: "Сварить макароны, пожарить котлеты, сделать салат",
-          isDescriptionOpen: false,
-          descriptionButtonName: "Развернуть",
-        },
-        {
-          work: "Помыть окна",
-          status: false,
-          isModalOpened: false,
-          description:
-            "Купить средство для мытья окон, тряпки для окон лежат в ванной на третьй полке слева",
-          isDescriptionOpen: false,
-          descriptionButtonName: "Развернуть",
-        },
-        {
-          work: "Поцеловать Тёму",
-          status: false,
-          isModalOpened: false,
-          description: "В носик! Обязательно!!",
-          isDescriptionOpen: false,
-          descriptionButtonName: "Развернуть",
-        },
-      ]      
-    }
+      toDos: [],
+      isModalOpened: false,
+      isLoading: false,
+      selectedTodo: null,
+    };
   },
-  
+  async mounted() {
+    const res = await axios.get("http://localhost:3000/todos");
+    this.isLoading = false;
+    this.toDos = res.data;
+  },
   methods: {
-    deleteToDo(toDo) {
+    async deleteToDo(toDo) {
       this.toDos.splice(this.toDos.indexOf(toDo), 1);
+      await axios.delete(`http://localhost:3000/todos/${toDo.id}`);
     },
 
     editToDo(toDo) {
-      (toDo.isModalOpened = true)
+      this.selectedTodo = toDo;
     },
 
-    saveChanges(newWork, toDo) {
-      toDo.work = newWork[0];
-      toDo.description = newWork[1];
-      this.toDos = this.toDos.filter((toDo) => toDo.work != "");
-      toDo.isModalOpened = false;
+    async saveChanges(info) {
+      this.selectedTodo = null;
+      if (info.isAdd) {
+        const newToDo = { ...info.toDo, id: Symbol(), status: false };
+        this.toDos.push(newToDo);
+        await axios.post(`http://localhost:3000/todos`, newToDo);
+      } else {
+        const editTodo = this.toDos.find((x) => x.id === info.toDo.id);
+        if (editTodo) {
+          editTodo.work = info.toDo.work;
+          editTodo.description = info.toDo.description;
+          await axios.put(
+            `http://localhost:3000/todos/${editTodo.id}`,
+            editTodo
+          );
+        }
+      }
     },
 
     addToDo() {
-      let toDo = {
+      this.selectedTodo = {
+        id: null,
         work: "",
         status: false,
-        isModalOpened: true,
         description: "",
-        isDescriptionOpen: false,
-        descriptionButtonName: "Развернуть",
       };
-      this.toDos.push(toDo);
     },
 
-    cancelChange(toDo) {
-      this.toDos = this.toDos.filter((toDo) => toDo.work != "");
-      toDo.isModalOpened = false;
-    },
-    
-    changeStatus(newStatus, toDo) {
-      toDo.status = newStatus
+    cancelChange() {
+      this.selectedTodo = null;
     },
 
-    openDescription(toDo) {
-      toDo.isDescriptionOpen = !toDo.isDescriptionOpen;
-      if (toDo.descriptionButtonName === "Развернуть") {
-        toDo.descriptionButtonName = "Свернуть";
-      } else {
-        toDo.descriptionButtonName = "Развернуть";
-      }
-    }
-  }
-}
+    async changeStatus(toDo) {
+      toDo.status = !toDo.status;
+      await axios.put(`http://localhost:3000/todos/${toDo.id}`, toDo);
+    },
+  },
+};
 </script>
 
 <style>
-.toDoList {
+.to-do-list {
   list-style: none;
   text-align: start;
   padding: 0;
 }
 
-.toDoList-item {
+.to-do-list-item {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -133,12 +113,12 @@ export default {
   color: #f70000;
 }
 
-.isDone {
+.is-done {
   border-bottom: solid 1px #22a22b;
   color: #22a22b;
 }
 
-.toDoList__addButton {
+.to-do-list__add-button {
   border-radius: 25px;
   background-color: #22a22b;
   font-weight: bold;

@@ -17,11 +17,11 @@
       <div class="modal__buttons">
         <button
           class="modal__buttons-item modal__buttons-item--save"
-          @click="saveChanges()"
+          @click="saveChanges"
         >
           Сохранить
         </button>
-        <button class="modal__buttons-item" @click="cancelChange()">
+        <button class="modal__buttons-item" @click="cancelChange">
           Отмена
         </button>
       </div>
@@ -31,16 +31,24 @@
 
 <script>
 export default {
-  name: "changeToDoModal",
+  name: "ChangeToDoModal",
   emits: ["saveChanges", "cancelChange"],
   props: {
-    work: String,
-    description: String,
+    toDo: Object,
+  },
+  data() {
+    return {
+      work: this.toDo.work,
+      description: this.toDo.description,
+    }
   },
 
   methods: {
     saveChanges() {
-      this.$emit("saveChanges", [this.work, this.description]);
+      this.$emit("saveChanges", {
+        isAdd: this.toDo.id === null,
+        toDo: { id: this.toDo.id, work: this.work, description: this.description},
+      });
     },
     cancelChange() {
       this.$emit("cancelChange");

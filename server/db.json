@@ -1,22 +1,16 @@
 {
   "todos": [
     {
-      "id": "0",
-      "work": "Приготовить ужин ",
-      "status": false,
-      "description": "Сварить макароны, пожарить котлеты, сделать салат"
-    },
-    {
-      "id": "2",
-      "work": "Поцеловать Тёму",
-      "status": false,
-      "description": "В носик! Обязательно!!"
-    },
-    {
       "work": "1231231",
       "description": "123123asdasdas",
       "status": true,
       "id": "binTrVK"
+    },
+    {
+      "work": "jujvfvv",
+      "description": "rrtbgbgb",
+      "status": false,
+      "id": "k7eloZ3"
     }
   ]
 }

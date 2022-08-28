@@ -1,12 +1,12 @@
 <template>
   <h1>Список дел</h1>
-  <toDoList />
+  <ToDoList />
 </template>
 
 <script>
-import toDoList from "./components/compositionAPI/toDoList.vue";
+import ToDoList from "./components/optionsAPI/ToDoList.vue";
 export default {
-  components: { toDoList },
+  components: { ToDoList },
 };
 </script>
 

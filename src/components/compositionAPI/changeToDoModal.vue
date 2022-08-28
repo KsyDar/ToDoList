@@ -32,7 +32,7 @@
 <script>
 import { ref } from '@vue/reactivity';
 export default {
-  name: "changeToDoModal",
+  name: "ChangeToDoModal",
   props: {
     toDo: Object,
   },

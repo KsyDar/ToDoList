@@ -1,13 +1,13 @@
 <template>
   <template v-if="isLoading === false">
-    <ul class="toDoList">
+    <ul class="to-do-list">
       <li
-        class="toDoList-item"
-        :class="{ isDone: toDo.status }"
+        class="to-do-list-item"
+        :class="{ 'is-done': toDo.status }"
         v-for="toDo in toDos"
         :key="toDo.id"
       >
-        <toDoItem
+        <ToDoItem
           :toDo="toDo"
           @deleteToDo="deleteToDo"
           @editToDo="editToDo"
@@ -15,11 +15,11 @@
         />
       </li>
     </ul>
-    <button class="toDoList__addButton" @click="addToDo()">Добавить</button>
+    <button class="to-do-list__add-button" @click="addToDo()">Добавить</button>
   </template>
 
   <div v-else>Загрузка...</div>
-  <changeToDoModal
+  <ChangeToDoModal
     v-if="selectedTodo"
     :toDo="selectedTodo"
     @saveChanges="saveChanges"
@@ -28,13 +28,13 @@
 </template>
 
 <script>
-import toDoItem from "./toDoItem.vue";
-import changeToDoModal from "./changeToDoModal.vue";
+import ToDoItem from "./ToDoItem.vue";
+import ChangeToDoModal from "./ChangeToDoModal.vue";
 import { onBeforeMount, ref } from "vue";
 import axios from "axios";
 export default {
-  name: "toDoList",
-  components: { changeToDoModal, toDoItem },
+  name: "ToDoList",
+  components: { ChangeToDoModal, ToDoItem },
   setup() {
     const toDos = ref([]);
     const isLoading = ref(true);
@@ -106,13 +106,13 @@ export default {
 </script>
 
 <style>
-.toDoList {
+.to-do-list {
   list-style: none;
   text-align: start;
   padding: 0;
 }
 
-.toDoList-item {
+.to-do-list-item {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -121,12 +121,12 @@ export default {
   color: #f70000;
 }
 
-.isDone {
+.is-done {
   border-bottom: solid 1px #22a22b;
   color: #22a22b;
 }
 
-.toDoList__addButton {
+.to-do-list__add-button {
   border-radius: 25px;
   background-color: #22a22b;
   font-weight: bold;
